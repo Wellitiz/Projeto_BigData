@@ -36,5 +36,3 @@ A primeira tarefa consiste na Integração de Python com APIs e Bancos de Dados.
 Durante esta atividade, é crucial seguir boas práticas de codificação, garantindo uma integração bem estruturada. Simultaneamente, a documentação e o versionamento no GitHub devem ser mantidos em paralelo ao desenvolvimento. A análise de dados com Pandas é parte integrante desta etapa, exigindo documentação e práticas de codificação exemplares.
 
 Na segunda atividade, concentramo-nos na Visualização de Dados com Streamlit, implementando visualizações eficazes e intuitivas. Simultaneamente, realizamos o Processamento de Dados em Larga Escala com PySpark, aplicando técnicas avançadas em grandes conjuntos de dados. Em ambas as partes, a documentação e a adesão a boas práticas são fundamentais para o sucesso do projeto.
-
-
