@@ -1,0 +1,99 @@
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+
+st.sidebar.title('Menu')
+paginaSelecionada = st.sidebar.selectbox('Seleciona a página', ['-','Média de compra', 'Frete mais caro', 'Distribuição de Vendas por Período'])
+
+if paginaSelecionada == 'Média de compra':
+    orders = pd.read_csv('t_olist_orders_dataset.csv')
+    order_items = pd.read_csv('csv_olist_order_items_dataset.csv')
+    products = pd.read_csv('olist_products_dataset.csv')
+
+    # Realiza as operações de junção
+    merged_data = pd.merge(orders, order_items, on='order_id', how='inner')
+    merged_data = pd.merge(merged_data, products, on='product_id', how='inner')
+
+    # Aplicação Streamlit
+    st.title('Análise de Compras')
+
+    # Calcula a média de produtos por cliente
+    average_products_per_customer = merged_data.groupby('customer_id')['product_id'].count().mean()
+
+    # Gráfico de Barras com Plotly Express para média de produtos por cliente
+    st.subheader('Média de Produtos por Cliente')
+    fig_products_per_customer = px.bar(x=['Média de Produtos por Cliente'], y=[average_products_per_customer],
+                                    labels={'y': 'Quantidade'},
+                                    title='Média de Produtos por Cliente',
+                                    text=[round(average_products_per_customer, 2)],
+                                    color_discrete_sequence=['#EAE2B7'])
+    fig_products_per_customer.update_traces(texttemplate='%{text}', textposition='outside')
+    st.plotly_chart(fig_products_per_customer)
+
+elif paginaSelecionada == 'Frete mais caro':
+    orders = pd.read_csv('t_olist_orders_dataset.csv')
+    order_items = pd.read_csv('csv_olist_order_items_dataset.csv')
+    products = pd.read_csv('olist_products_dataset.csv')
+
+    # Realiza as operações de junção
+    merged_data = pd.merge(orders, order_items, on='order_id', how='inner')
+    merged_data = pd.merge(merged_data, products, on='product_id', how='inner')
+
+    # Aplicação Streamlit
+    st.title('Análise de Compras')
+
+    # Cálculo do custo total
+    merged_data['total_cost'] = merged_data['price'] + merged_data['freight_value']
+
+    # Média do custo por categoria
+    avg_cost_by_category = merged_data.groupby('product_category_name')['total_cost'].mean()
+
+    # Ordenação das categorias
+    sorted_categories = avg_cost_by_category.sort_values(ascending=False)
+
+    # Gráfico de barras para as categorias com os fretes mais caros
+    st.subheader('Categorias com os fretes mais caros')
+    fig_categorias_mais_caras = px.bar(sorted_categories.head(), x=sorted_categories.head().index, y='total_cost',
+                                    labels={'total_cost': 'Custo Médio'},
+                                    title='Categorias com os fretes mais caros')
+    st.plotly_chart(fig_categorias_mais_caras)
+
+    # Gráfico de barras para as categorias com os fretes mais baratos
+    st.subheader('Categorias com os fretes mais baratos')
+    fig_categorias_mais_baratas = px.bar(sorted_categories.tail(), x=sorted_categories.tail().index, y='total_cost',
+                                        labels={'total_cost': 'Custo Médio'},
+                                        title='Categorias com os fretes mais baratos')
+    st.plotly_chart(fig_categorias_mais_baratas)
+elif paginaSelecionada == 'Distribuição de Vendas por Período':
+    orders = pd.read_csv('t_olist_orders_dataset.csv')
+
+    completed_orders = orders[orders['order_status'] == 'delivered'].copy()  
+
+    completed_orders['order_approved_at_hour'] = pd.to_datetime(completed_orders['order_approved_at_hour'], errors='coerce').dt.hour
+
+    def map_period(hour):
+        if 0 <= hour < 6:
+            return 'Madrugada'
+        elif 6 <= hour < 12:
+            return 'Manhã'
+        elif 12 <= hour < 18:
+            return 'Tarde'
+        else:
+            return 'Noite'
+
+    completed_orders['period'] = completed_orders['order_approved_at_hour'].apply(map_period)
+
+    all_periods = ['Madrugada', 'Manhã', 'Tarde', 'Noite']
+
+    sales_by_period = completed_orders['period'].value_counts().reindex(all_periods, fill_value=0)
+
+    # Gráfico de barras para distribuição de vendas por período
+    st.title('Distribuição de Vendas por Período')
+    fig_vendas_por_periodo = px.bar(x=sales_by_period.index, y=sales_by_period.values,
+                                    labels={'y': 'Número de Vendas'},
+                                    title='Distribuição de Vendas por Período',
+                                    color_discrete_sequence=['#A6E1FA'])
+    st.plotly_chart(fig_vendas_por_periodo)
+elif paginaSelecionada == '-':
+    st.title('Selecio a opção desejada')
+    
